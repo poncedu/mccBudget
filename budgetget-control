@@ -26,7 +26,7 @@ Para utilizar este script e a planilha associada, siga os passos abaixo:
 - Nomeie o script conforme desejar, por exemplo, "Controle de Orçamento MCC".
 - Cole o código do script disponível neste repositório na área de edição do script no Google Ads.
     - O código do script pode ser encontrado [aqui](URL_DO_SCRIPT_NO_GITHUB).
-- Substitua a variável `sheetUrl` no início do script pela URL da cópia da planilha que você fez no passo 1.
+- Substitua a variável `urlSheet` no início do script pela URL da cópia da planilha que você fez no passo 1.
 - Salve e autorize o script para executar na sua conta do Google Ads.
 - Agende a execução do script conforme necessário (diariamente, semanalmente, etc.), dependendo de como deseja monitorar o orçamento.
 
