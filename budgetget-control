@@ -1,0 +1,103 @@
+/******************************************
+* Controle de Orçamento de Contas MCC
+*
+* Versão: 1.0
+* Data: 10/02/2024
+*
+* Criado por: Du Ponce | Visite meu linkedin https://www.linkedin.com/in/duponce/
+*
+* Instruções: Este script calcula o total gasto, a média diária de gastos dos últimos 30 dias das contas ativas na MCC,
+* e estima a quantidade de gastos para os próximos dias para cada conta no MCC,
+* com base no mês atual. As contas sem gastos são excluídas da análise.
+******************************************/
+/*
+Para utilizar este script e a planilha associada, siga os passos abaixo:
+
+### 1. Copiar a Planilha
+
+- Acesse a planilha modelo disponível neste link: https://docs.google.com/spreadsheets/d/1TTZLgyK730gf0vKINhR2QbAnp2H0sYiZQjzKjn6EaJ0/edit#gid=0
+- Faça uma cópia da planilha para a sua própria conta do Google Drive. Para isso, vá em `Arquivo` > `Fazer uma cópia`.
+
+### 2. Configurar o Script no Google Ads
+
+- Faça login na sua conta do Google Ads que possui acesso ao MCC.
+- Acesse a seção `Scripts` no painel lateral.
+- Clique em `+` para adicionar um novo script.
+- Nomeie o script conforme desejar, por exemplo, "Controle de Orçamento MCC".
+- Cole o código do script disponível neste repositório na área de edição do script no Google Ads.
+    - O código do script pode ser encontrado [aqui](URL_DO_SCRIPT_NO_GITHUB).
+- Substitua a variável `sheetUrl` no início do script pela URL da cópia da planilha que você fez no passo 1.
+- Salve e autorize o script para executar na sua conta do Google Ads.
+- Agende a execução do script conforme necessário (diariamente, semanalmente, etc.), dependendo de como deseja monitorar o orçamento.
+
+### 3. Verificar os Dados na Planilha
+
+- Após o script ser executado, verifique a aba "Orçamento" na sua planilha para visualizar os dados atualizados sobre o orçamento das contas MCC.
+- Os dados incluirão o nome da conta, o gasto total do mês atual, a média diária de gastos, os dias restantes estimados no mês atual e a estimativa de gastos para os próximos dias.
+
+## Suporte
+
+Se você encontrar qualquer problema ou tiver alguma dúvida sobre como usar o script ou a planilha, sinta-se à vontade para me chamar.
+******************************************/
+
+let urlSheet = 'https://docs.google.com/spreadsheets/d/1TTZLgyK730gf0vKINhR2QbAnp2H0sYiZQjzKjn6EaJ0/edit#gid=0'; // ALTERE PARA A URL DA SUA PLANILHA DEPOIS
+
+// Não altere a partir daqui
+
+function main() {
+  // Utiliza diretamente a variável urlSheet que contém a URL da sua planilha.
+  var sheetUrl = urlSheet;
+  var sheetName = 'Orçamento';
+  // Abre a planilha do Google Sheets usando a URL fornecida.
+  var spreadsheet = SpreadsheetApp.openByUrl(sheetUrl);
+  // Seleciona a aba específica na planilha para trabalhar.
+  var sheet = spreadsheet.getSheetByName(sheetName);
+
+  // Limpa todo o conteúdo existente na aba selecionada para começar um novo registro.
+  sheet.clearContents();
+  // Adiciona uma linha no topo da aba com os cabeçalhos das colunas.
+  sheet.appendRow(['Nome da Conta', 'Gasto Total (Mês Atual)', 'Média de Gasto Diário (Mês Atual)', 'Dias Restantes Estimados (Mês Atual)', 'Estimativa de Gastos (Próximos Dias)']);
+
+  // Inicia a iteração sobre todas as contas gerenciadas pelo MCC.
+  var accountIterator = AdsManagerApp.accounts().get();
+  
+  // Enquanto houver contas a serem processadas, executa o loop.
+  while (accountIterator.hasNext()) {
+    var account = accountIterator.next(); // Seleciona a próxima conta no iterador.
+    AdsManagerApp.select(account); // Define a conta selecionada como o contexto atual para operações subsequentes.
+    
+    // Obtém as estatísticas de gastos da conta para o mês atual.
+    var stats = AdsApp.currentAccount().getStatsFor("THIS_MONTH");
+    var totalSpent = stats.getCost(); // Recupera o total gasto no mês atual.
+    if (totalSpent === 0) continue; // Se não houve gastos, pula para a próxima conta.
+
+    // Calcula o número de dias no mês atual e o número de dias que já passaram.
+    var daysInCurrentMonth = getDaysInMonth(new Date());
+    var today = new Date().getDate();
+    var daysPassed = today - 1;
+    var averageDailySpend = daysPassed > 0 ? totalSpent / daysPassed : 0; // Calcula a média diária de gastos.
+    var daysRemaining = daysInCurrentMonth - today + 1; // Calcula os dias restantes no mês.
+
+    // Calcula a estimativa de gastos para os próximos dias com base na média diária.
+    var estimatedSpendingNextDays = averageDailySpend * daysRemaining;
+
+    // Registra os dados calculados na aba do Google Sheets.
+    sheet.appendRow([
+      account.getName(),
+      formatCurrency(totalSpent),
+      formatCurrency(averageDailySpend),
+      daysRemaining.toString().replace(/\B(?=(\d{3})+(?!\d))/g, "."),
+      formatCurrency(estimatedSpendingNextDays)
+    ]);
+  }
+}
+
+// Função auxiliar para calcular o número total de dias em um determinado mês.
+function getDaysInMonth(date) {
+  return new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
+}
+
+// Função auxiliar para formatar números como valores monetários no formato brasileiro.
+function formatCurrency(number) {
+  return 'R$ ' + number.toFixed(2).replace('.', ',').replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+}
