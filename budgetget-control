@@ -13,6 +13,9 @@
 * Instruções: Este script calcula o total gasto, a média diária de gastos dos últimos 30 dias das contas ativas na MCC,
 * e estima a quantidade de gastos para os próximos dias para cada conta no MCC,
 * com base no mês atual. As contas sem gastos são excluídas da análise.
+*
+* Vídeo explicativo aqui https://www.loom.com/share/3998ae01871c4a268dd64dc3b1d4fad4?sid=97392862-422b-44cf-8107-8b644b29d6a9
+*
 ******************************************/
 /*
 Para utilizar este script e a planilha associada, siga os passos abaixo:
